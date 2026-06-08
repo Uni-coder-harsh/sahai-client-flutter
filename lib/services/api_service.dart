@@ -6,8 +6,13 @@ import '../models/concept_node.dart';
 import '../models/dag_edge.dart';
 
 class ApiService {
+  static String? customBaseUrl;
+
   // Automatically resolve localhost for Web/Desktop and loopback IP for Android Emulator
   static String get baseUrl {
+    if (customBaseUrl != null && customBaseUrl!.trim().isNotEmpty) {
+      return customBaseUrl!.trim();
+    }
     if (kIsWeb) {
       return 'http://localhost:3000/api';
     }

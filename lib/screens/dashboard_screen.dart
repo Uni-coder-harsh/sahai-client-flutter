@@ -44,6 +44,98 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  void _showSettingsDialog(BuildContext context) {
+    final textController = TextEditingController(text: ApiService.customBaseUrl ?? '');
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1E293B),
+          title: const Text(
+            'Backend Configuration',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Active Server URL:',
+                style: TextStyle(color: Colors.blueGrey[400], fontSize: 12),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                ApiService.baseUrl,
+                style: const TextStyle(color: Colors.greenAccent, fontSize: 13, fontFamily: 'monospace'),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Override Base URL:',
+                style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: textController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'e.g., http://192.168.1.100:3000/api',
+                  hintStyle: TextStyle(color: Colors.blueGrey[600]),
+                  filled: true,
+                  fillColor: const Color(0xFF0F172A),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.blueGrey[800]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Colors.greenAccent),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Leave blank to auto-resolve (localhost for Web/Desktop, 10.0.2.2 for Android Emulator).',
+                style: TextStyle(color: Colors.blueGrey[400], fontSize: 11),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                textController.clear();
+                setState(() {
+                  ApiService.customBaseUrl = null;
+                });
+                Navigator.of(context).pop();
+                _loadState();
+              },
+              child: const Text('Reset', style: TextStyle(color: Colors.redAccent)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel', style: TextStyle(color: Colors.blueGrey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.greenAccent,
+                foregroundColor: const Color(0xFF0F172A),
+              ),
+              onPressed: () {
+                final url = textController.text.trim();
+                setState(() {
+                  ApiService.customBaseUrl = url.isNotEmpty ? url : null;
+                });
+                Navigator.of(context).pop();
+                _loadState();
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final double avgMastery = _nodes.isEmpty
@@ -88,10 +180,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ],
                         ),
-                        CircleAvatar(
-                          backgroundColor: Colors.green[800],
-                          radius: 24,
-                          child: const Text('ST', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.settings, color: Colors.blueGrey),
+                              tooltip: 'Configure Backend Server',
+                              onPressed: () => _showSettingsDialog(context),
+                            ),
+                            const SizedBox(width: 8),
+                            CircleAvatar(
+                              backgroundColor: Colors.green[800],
+                              radius: 24,
+                              child: const Text('ST', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
                         ),
                       ],
                     ),
