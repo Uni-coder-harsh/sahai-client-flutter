@@ -20,8 +20,8 @@ class SahAiApp extends StatelessWidget {
         primaryColor: const Color(0xFF0F172A),
         scaffoldBackgroundColor: const Color(0xFF0F172A),
         colorScheme: const ColorScheme.dark(
-          primary: Colors.emeraldAccent,
-          secondary: Colors.emerald,
+          primary: Colors.greenAccent,
+          secondary: Colors.green,
           surface: Color(0xFF1E293B),
           background: Color(0xFF0F172A),
         ),
@@ -74,12 +74,12 @@ class _MainAppShellState extends State<MainAppShell> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: Colors.slate[900]!, width: 1)),
+          border: Border(top: BorderSide(color: Colors.blueGrey[900]!, width: 1)),
         ),
         child: BottomNavigationBar(
           backgroundColor: const Color(0xFF0F172A),
-          selectedItemColor: Colors.emeraldAccent,
-          unselectedItemColor: Colors.slate[600],
+          selectedItemColor: Colors.greenAccent,
+          unselectedItemColor: Colors.blueGrey[600],
           currentIndex: _selectedIndex,
           type: BottomNavigationBarType.fixed,
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
@@ -92,17 +92,17 @@ class _MainAppShellState extends State<MainAppShell> {
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.dashboard_rounded),
-              activeIcon: Icon(Icons.dashboard_rounded, color: Colors.emeraldAccent),
+              activeIcon: Icon(Icons.dashboard_rounded, color: Colors.greenAccent),
               label: 'Hub',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.account_tree_outlined),
-              activeIcon: Icon(Icons.account_tree_rounded, color: Colors.emeraldAccent),
+              activeIcon: Icon(Icons.account_tree_rounded, color: Colors.greenAccent),
               label: 'Skill Mesh',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.terminal_rounded),
-              activeIcon: Icon(Icons.terminal_rounded, color: Colors.emeraldAccent),
+              activeIcon: Icon(Icons.terminal_rounded, color: Colors.greenAccent),
               label: 'Sandbox',
             ),
           ],

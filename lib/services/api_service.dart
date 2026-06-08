@@ -1,11 +1,20 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 import 'package:http/http.dart' as http;
 import '../models/concept_node.dart';
 import '../models/dag_edge.dart';
 
 class ApiService {
-  // Configured to map to local running Node.js server
-  static const String baseUrl = 'http://localhost:3000/api';
+  // Automatically resolve localhost for Web/Desktop and loopback IP for Android Emulator
+  static String get baseUrl {
+    if (kIsWeb) {
+      return 'http://localhost:3000/api';
+    }
+    return Platform.isAndroid 
+        ? 'http://10.0.2.2:3000/api' 
+        : 'http://localhost:3000/api';
+  }
 
   /// Register student and initialize Gaussian belief priors
   Future<Map<String, dynamic>> onboardUser({

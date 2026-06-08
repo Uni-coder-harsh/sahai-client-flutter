@@ -49,7 +49,7 @@ class _SandboxScreenState extends State<SandboxScreen> {
                     children: [
                       const Text(
                         'MODE A: CODE EDITING',
-                        style: TextStyle(color: Colors.slate, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                        style: TextStyle(color: Colors.blueGrey, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                       ),
                       Row(
                         children: [
@@ -70,7 +70,7 @@ class _SandboxScreenState extends State<SandboxScreen> {
                           const SizedBox(width: 8),
                           ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.emerald,
+                              backgroundColor: Colors.green,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             ),
                             icon: const Icon(Icons.play_arrow, size: 16),
@@ -89,20 +89,20 @@ class _SandboxScreenState extends State<SandboxScreen> {
                       decoration: BoxDecoration(
                         color: const Color(0xFF1E293B),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.slate[800]!),
+                        border: Border.all(color: Colors.blueGrey[800]!),
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       child: TextField(
                         controller: _codeController,
                         maxLines: null,
                         keyboardType: TextInputType.multiline,
-                        style: const TextStyle(color: Colors.emeraldAccent, fontFamily: 'monospace', fontSize: 13),
+                        style: const TextStyle(color: Colors.greenAccent, fontFamily: 'monospace', fontSize: 13),
                         decoration: const InputDecoration(border: InputBorder.none),
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text('CONSOLE OUTPUT', style: TextStyle(color: Colors.slate, fontSize: 10, fontWeight: FontWeight.bold)),
+                  const Text('CONSOLE OUTPUT', style: TextStyle(color: Colors.blueGrey, fontSize: 10, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   // Mock compiler console
                   Expanded(
@@ -125,7 +125,7 @@ class _SandboxScreenState extends State<SandboxScreen> {
             ),
           ),
           // Vertical divider
-          Container(width: 1, color: Colors.slate[900]),
+          Container(width: 1, color: Colors.blueGrey[900]),
 
           // Right Pane: OCR Scan / Submit
           Expanded(
@@ -138,7 +138,7 @@ class _SandboxScreenState extends State<SandboxScreen> {
                 children: [
                   const Text(
                     'MODE B: OCR SCAN & INGESTION',
-                    style: TextStyle(color: Colors.slate, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                    style: TextStyle(color: Colors.blueGrey, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                   ),
                   const SizedBox(height: 20),
                   // Scanned notes area
@@ -148,21 +148,21 @@ class _SandboxScreenState extends State<SandboxScreen> {
                       decoration: BoxDecoration(
                         color: const Color(0xFF0F172A),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.slate[800]!),
+                        border: Border.all(color: Colors.blueGrey[800]!),
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.camera_alt, color: Colors.slate[600], size: 48),
+                          Icon(Icons.camera_alt, color: Colors.blueGrey[600], size: 48),
                           const SizedBox(height: 12),
                           const Text('Snapping handwritten notes...', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 6),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 24.0),
                             child: Text(
-                              'Converts notebook derivations into cognitive triggers locally ($0 operating cost).',
+                              'Converts notebook derivations into cognitive triggers locally (\$0 operating cost).',
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.slate[400], fontSize: 11),
+                              style: TextStyle(color: Colors.blueGrey[400], fontSize: 11),
                             ),
                           ),
                         ],
@@ -172,7 +172,7 @@ class _SandboxScreenState extends State<SandboxScreen> {
                   const SizedBox(height: 24),
                   // Telemetry parameters overview
                   _buildStatusRow('Compilation Runs:', '$_runCount attempts'),
-                  _buildStatusRow('Copy-Paste Flagged:', _didPaste ? 'TRUE' : 'FALSE', _didPaste ? Colors.redAccent : Colors.slate),
+                  _buildStatusRow('Copy-Paste Flagged:', _didPaste ? 'TRUE' : 'FALSE', _didPaste ? Colors.redAccent : Colors.blueGrey),
                   const Spacer(),
                   // Submit buttons
                   SizedBox(
@@ -180,7 +180,7 @@ class _SandboxScreenState extends State<SandboxScreen> {
                     height: 50,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.emeraldAccent[700],
+                        backgroundColor: Colors.greenAccent[700],
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: _isTransmitting ? null : _submitTelemetry,
@@ -214,7 +214,7 @@ class _SandboxScreenState extends State<SandboxScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.slate[400], fontSize: 13)),
+          Text(label, style: TextStyle(color: Colors.blueGrey[400], fontSize: 13)),
           Text(val, style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.bold)),
         ],
       ),

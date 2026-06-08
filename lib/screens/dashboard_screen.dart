@@ -54,7 +54,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: const Color(0xFF0F172A), // Premium Slate Black
       body: SafeArea(
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: Colors.emeraldAccent))
+            ? const Center(child: CircularProgressIndicator(color: Colors.greenAccent))
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
@@ -70,7 +70,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Text(
                               'Cognitive Hub',
                               style: TextStyle(
-                                color: Colors.slate[400],
+                                color: Colors.blueGrey[400],
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 1.2,
@@ -89,7 +89,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
                         CircleAvatar(
-                          backgroundColor: Colors.emerald[800],
+                          backgroundColor: Colors.green[800],
                           radius: 24,
                           child: const Text('ST', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ),
@@ -104,7 +104,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: _buildMetricCard(
                             'EXPECTED MASTERY',
                             '${(avgMastery * 100).toStringAsFixed(1)}%',
-                            Colors.emerald,
+                            Colors.green,
                             Icons.psychology,
                           ),
                         ),
@@ -168,7 +168,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 16),
           Text(
             title,
-            style: TextStyle(color: Colors.slate[400], fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+            style: TextStyle(color: Colors.blueGrey[400], fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0),
           ),
           const SizedBox(height: 6),
           Text(
@@ -204,7 +204,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Text(
                       _error,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.slate[400], fontSize: 12),
+                      style: TextStyle(color: Colors.blueGrey[400], fontSize: 12),
                     ),
                   )
                 : Container(),
@@ -247,7 +247,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           decoration: BoxDecoration(
             color: const Color(0xFF1E293B),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.slate[800]!, width: 1),
+            border: Border.all(color: Colors.blueGrey[800]!, width: 1),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,7 +274,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         Text(
                           task['node'],
-                          style: TextStyle(color: Colors.slate[500], fontSize: 10, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: Colors.blueGrey[500], fontSize: 10, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -286,14 +286,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 4),
                     Text(
                       task['desc'],
-                      style: TextStyle(color: Colors.slate[400], fontSize: 12),
+                      style: TextStyle(color: Colors.blueGrey[400], fontSize: 12),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 12),
               IconButton(
-                icon: const Icon(Icons.arrow_forward_ios, color: Colors.emeraldAccent, size: 18),
+                icon: const Icon(Icons.arrow_forward_ios, color: Colors.greenAccent, size: 18),
                 onPressed: widget.onStartSandbox,
               ),
             ],
@@ -315,12 +315,12 @@ class RadarPainter extends CustomPainter {
     final radius = min(size.width, size.height) * 0.35;
     
     final paintGrid = Paint()
-      ..color = Colors.slate[800]!
+      ..color = Colors.blueGrey[800]!
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
     final paintRadial = Paint()
-      ..color = Colors.slate[800]!
+      ..color = Colors.blueGrey[800]!
       ..strokeWidth = 1.0;
 
     // Draw concentric circles
@@ -362,11 +362,11 @@ class RadarPainter extends CustomPainter {
     path.close();
 
     final paintPoly = Paint()
-      ..color = Colors.emeraldAccent.withOpacity(0.2)
+      ..color = Colors.greenAccent.withOpacity(0.2)
       ..style = PaintingStyle.fill;
       
     final paintBorder = Paint()
-      ..color = Colors.emeraldAccent
+      ..color = Colors.greenAccent
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 

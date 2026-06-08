@@ -83,7 +83,7 @@ class _SkillMeshScreenState extends State<SkillMeshScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.emeraldAccent),
+            icon: const Icon(Icons.refresh, color: Colors.greenAccent),
             onPressed: () {
               setState(() => _isLoading = true);
               _loadData();
@@ -92,7 +92,7 @@ class _SkillMeshScreenState extends State<SkillMeshScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.emeraldAccent))
+          ? const Center(child: CircularProgressIndicator(color: Colors.greenAccent))
           : Stack(
               children: [
                 // Interactive Grid Painter
@@ -122,16 +122,16 @@ class _SkillMeshScreenState extends State<SkillMeshScreen> {
                     decoration: BoxDecoration(
                       color: const Color(0xFF1E293B).withOpacity(0.9),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.slate[800]!),
+                      border: Border.all(color: Colors.blueGrey[800]!),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.info, color: Colors.emeraldAccent, size: 20),
+                        const Icon(Icons.info, color: Colors.greenAccent, size: 20),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             'Select nodes to display Beta parameters and Ebbinghaus time decays.',
-                            style: TextStyle(color: Colors.slate[300], fontSize: 12),
+                            style: TextStyle(color: Colors.blueGrey[300], fontSize: 12),
                           ),
                         ),
                       ],
@@ -167,7 +167,7 @@ class _SkillMeshScreenState extends State<SkillMeshScreen> {
   Widget _buildDetailDrawer() {
     final node = _selectedNode!;
     final color = node.expectedMastery >= 0.75
-        ? Colors.emeraldAccent
+        ? Colors.greenAccent
         : node.expectedMastery >= 0.50
             ? Colors.amberAccent
             : Colors.redAccent;
@@ -197,7 +197,7 @@ class _SkillMeshScreenState extends State<SkillMeshScreen> {
                   children: [
                     Text(
                       node.nodeId,
-                      style: TextStyle(color: Colors.slate[400], fontSize: 11, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: Colors.blueGrey[400], fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -207,17 +207,17 @@ class _SkillMeshScreenState extends State<SkillMeshScreen> {
                   ],
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: Colors.slate),
+                  icon: const Icon(Icons.close, color: Colors.blueGrey),
                   onPressed: () => setState(() => _selectedNode = null),
                 ),
               ],
             ),
-            const Divider(color: Colors.slate, height: 24),
+            const Divider(color: Colors.blueGrey, height: 24),
             Row(
               children: [
                 _buildDrawerParam('EXPECTED MASTERY', '${(node.expectedMastery * 100).toStringAsFixed(1)}%', color),
                 const SizedBox(width: 24),
-                _buildDrawerParam('ALPHA (SUCCESS)', node.alpha.toStringAsFixed(2), Colors.emeraldAccent),
+                _buildDrawerParam('ALPHA (SUCCESS)', node.alpha.toStringAsFixed(2), Colors.greenAccent),
                 const SizedBox(width: 24),
                 _buildDrawerParam('BETA (ERRORS)', node.beta.toStringAsFixed(2), Colors.redAccent),
               ],
@@ -225,7 +225,7 @@ class _SkillMeshScreenState extends State<SkillMeshScreen> {
             const SizedBox(height: 16),
             Text(
               'forgetting_curve_decay_rate: 0.02/day • confidence_interval: [${(node.expectedMastery - 0.1).toStringAsFixed(2)}, ${(node.expectedMastery + 0.1).toStringAsFixed(2)}]',
-              style: TextStyle(color: Colors.slate[400], fontSize: 11, fontStyle: FontStyle.italic),
+              style: TextStyle(color: Colors.blueGrey[400], fontSize: 11, fontStyle: FontStyle.italic),
             ),
           ],
         ),
@@ -237,7 +237,7 @@ class _SkillMeshScreenState extends State<SkillMeshScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: Colors.slate[400], fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+        Text(label, style: TextStyle(color: Colors.blueGrey[400], fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
         const SizedBox(height: 4),
         Text(val, style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.bold)),
       ],
@@ -286,7 +286,7 @@ class MeshPainter extends CustomPainter {
 
     // Paint configuration for edges
     final paintEdge = Paint()
-      ..color = Colors.slate[800]!
+      ..color = Colors.blueGrey[800]!
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
@@ -329,7 +329,7 @@ class MeshPainter extends CustomPainter {
       // Determine mastery color
       Color color = Colors.redAccent;
       if (mastery >= 0.75) {
-        color = Colors.emeraldAccent;
+        color = Colors.greenAccent;
       } else if (mastery >= 0.50) {
         color = Colors.amberAccent;
       }

@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/concept_node.dart';
 import '../services/api_service.dart';
@@ -99,7 +100,7 @@ class _FailureReportScreenState extends State<FailureReportScreen> {
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.emeraldAccent))
+          ? const Center(child: CircularProgressIndicator(color: Colors.greenAccent))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
               child: Column(
@@ -144,7 +145,7 @@ class _FailureReportScreenState extends State<FailureReportScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Bayesian reward discount (gamma: 0.5) propagated to prerequisite nodes:',
-                    style: TextStyle(color: Colors.slate[400], fontSize: 12),
+                    style: TextStyle(color: Colors.blueGrey[400], fontSize: 12),
                   ),
                   const SizedBox(height: 16),
                   _buildPropagationList(propagatedNodes),
@@ -156,11 +157,11 @@ class _FailureReportScreenState extends State<FailureReportScreen> {
                     height: 50,
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.emeraldAccent),
+                        side: const BorderSide(color: Colors.greenAccent),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
-                      child: const Text('Return to Command Hub', style: TextStyle(color: Colors.emeraldAccent, fontWeight: FontWeight.bold)),
+                      child: const Text('Return to Command Hub', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],
@@ -175,7 +176,7 @@ class _FailureReportScreenState extends State<FailureReportScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF1E293B),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.slate[800]!),
+        border: Border.all(color: Colors.blueGrey[800]!),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,10 +187,10 @@ class _FailureReportScreenState extends State<FailureReportScreen> {
               Text(node.conceptName, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(color: Colors.emerald.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(color: Colors.green.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
                 child: Text(
                   'E[K] = ${(node.expectedMastery * 100).toStringAsFixed(1)}%',
-                  style: const TextStyle(color: Colors.emeraldAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               )
             ],
@@ -212,7 +213,7 @@ class _FailureReportScreenState extends State<FailureReportScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: Colors.slate[400], fontSize: 9, fontWeight: FontWeight.bold)),
+        Text(label, style: TextStyle(color: Colors.blueGrey[400], fontSize: 9, fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
         Text(val, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
       ],
@@ -223,7 +224,7 @@ class _FailureReportScreenState extends State<FailureReportScreen> {
     if (nodes.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Text('No parent propagation logs present.', style: TextStyle(color: Colors.slate[500], fontSize: 12)),
+        child: Text('No parent propagation logs present.', style: TextStyle(color: Colors.blueGrey[500], fontSize: 12)),
       );
     }
 
@@ -235,7 +236,7 @@ class _FailureReportScreenState extends State<FailureReportScreen> {
           decoration: BoxDecoration(
             color: const Color(0xFF1E293B).withOpacity(0.5),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.slate[800]!),
+            border: Border.all(color: Colors.blueGrey[800]!),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -248,7 +249,7 @@ class _FailureReportScreenState extends State<FailureReportScreen> {
                     const SizedBox(height: 4),
                     Text(
                       'Prerequisite node updated via discount factor.',
-                      style: TextStyle(color: Colors.slate[400], fontSize: 11),
+                      style: TextStyle(color: Colors.blueGrey[400], fontSize: 11),
                     )
                   ],
                 ),
@@ -258,12 +259,12 @@ class _FailureReportScreenState extends State<FailureReportScreen> {
                 children: [
                   Text(
                     '${(node.expectedMastery * 100).toStringAsFixed(1)}%',
-                    style: const TextStyle(color: Colors.emeraldAccent, fontWeight: FontWeight.bold, fontSize: 14),
+                    style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     'α: ${node.alpha.toStringAsFixed(2)}',
-                    style: TextStyle(color: Colors.slate[400], fontSize: 10),
+                    style: TextStyle(color: Colors.blueGrey[400], fontSize: 10),
                   ),
                 ],
               )
