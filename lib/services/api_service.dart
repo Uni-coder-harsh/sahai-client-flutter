@@ -9,6 +9,14 @@ class ApiService {
   static String? customBaseUrl;
   static String? token; // To store our AES-256 encrypted authentication token
 
+  static dynamic _safeJsonDecode(String body, String defaultErrorMessage) {
+    try {
+      return jsonDecode(body);
+    } catch (_) {
+      throw Exception('$defaultErrorMessage (Raw: $body)');
+    }
+  }
+
   // Automatically resolve localhost for Web/Desktop and loopback IP for Android Emulator
   static String get baseUrl {
     if (customBaseUrl != null && customBaseUrl!.trim().isNotEmpty) {
@@ -59,11 +67,11 @@ class ApiService {
     );
 
     if (response.statusCode == 201) {
-      final data = jsonDecode(response.body);
+      final data = _safeJsonDecode(response.body, 'Failed to parse registration response.');
       token = data['token'];
       return data;
     } else {
-      final errBody = jsonDecode(response.body);
+      final errBody = _safeJsonDecode(response.body, 'Registration failed with status ${response.statusCode}.');
       throw Exception(errBody['error'] ?? 'Registration failed.');
     }
   }
@@ -83,11 +91,11 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = _safeJsonDecode(response.body, 'Failed to parse login response.');
       token = data['token'];
       return data;
     } else {
-      final errBody = jsonDecode(response.body);
+      final errBody = _safeJsonDecode(response.body, 'Login failed with status ${response.statusCode}.');
       throw Exception(errBody['error'] ?? 'Login failed.');
     }
   }
