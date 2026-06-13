@@ -24,7 +24,11 @@ class ApiService {
     }
     const envUrl = String.fromEnvironment('API_URL');
     if (envUrl.isNotEmpty) {
-      return envUrl;
+      final trimmed = envUrl.trim();
+      if (!trimmed.endsWith('/api') && !trimmed.endsWith('/api/')) {
+        return trimmed.endsWith('/') ? '${trimmed}api' : '$trimmed/api';
+      }
+      return trimmed;
     }
     if (kIsWeb) {
       return 'http://localhost:3000/api';
