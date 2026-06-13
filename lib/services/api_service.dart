@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'dart:io' show Platform;
 import 'package:http/http.dart' as http;
 import '../models/concept_node.dart';
@@ -19,23 +19,30 @@ class ApiService {
 
   // Automatically resolve localhost for Web/Desktop and loopback IP for Android Emulator
   static String get baseUrl {
+    String url;
     if (customBaseUrl != null && customBaseUrl!.trim().isNotEmpty) {
-      return customBaseUrl!.trim();
-    }
-    const envUrl = String.fromEnvironment('API_URL');
-    if (envUrl.isNotEmpty) {
-      final trimmed = envUrl.trim();
-      if (!trimmed.endsWith('/api') && !trimmed.endsWith('/api/')) {
-        return trimmed.endsWith('/') ? '${trimmed}api' : '$trimmed/api';
+      url = customBaseUrl!.trim();
+    } else {
+      const envUrl = String.fromEnvironment('API_URL');
+      if (envUrl.isNotEmpty) {
+        final trimmed = envUrl.trim();
+        if (!trimmed.endsWith('/api') && !trimmed.endsWith('/api/')) {
+          url = trimmed.endsWith('/') ? '${trimmed}api' : '$trimmed/api';
+        } else {
+          url = trimmed;
+        }
+      } else if (kIsWeb) {
+        url = 'http://localhost:3000/api';
+      } else {
+        url = Platform.isAndroid 
+            ? 'http://10.0.2.2:3000/api' 
+            : 'http://localhost:3000/api';
       }
-      return trimmed;
     }
-    if (kIsWeb) {
-      return 'http://localhost:3000/api';
+    if (kDebugMode || true) {
+      print('[API_SERVICE] Resolved API baseUrl: $url');
     }
-    return Platform.isAndroid 
-        ? 'http://10.0.2.2:3000/api' 
-        : 'http://localhost:3000/api';
+    return url;
   }
 
   Map<String, String> get _headers {
@@ -57,8 +64,11 @@ class ApiService {
     required String confirmPassword,
     required String phoneNumber,
   }) async {
+    final requestUrl = '$baseUrl/users/signup';
+    print('[API_SERVICE] POST request to: $requestUrl');
+    
     final response = await http.post(
-      Uri.parse('$baseUrl/users/signup'),
+      Uri.parse(requestUrl),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'username': username,
@@ -69,6 +79,9 @@ class ApiService {
         'phoneNumber': phoneNumber,
       }),
     );
+
+    print('[API_SERVICE] Response status: ${response.statusCode}');
+    print('[API_SERVICE] Response body: ${response.body}');
 
     if (response.statusCode == 201) {
       final data = _safeJsonDecode(response.body, 'Failed to parse registration response.');
@@ -85,14 +98,20 @@ class ApiService {
     required String usernameOrEmail,
     required String password,
   }) async {
+    final requestUrl = '$baseUrl/users/login';
+    print('[API_SERVICE] POST request to: $requestUrl');
+
     final response = await http.post(
-      Uri.parse('$baseUrl/users/login'),
+      Uri.parse(requestUrl),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'usernameOrEmail': usernameOrEmail,
         'password': password,
       }),
     );
+
+    print('[API_SERVICE] Response status: ${response.statusCode}');
+    print('[API_SERVICE] Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final data = _safeJsonDecode(response.body, 'Failed to parse login response.');
