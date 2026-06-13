@@ -5,11 +5,13 @@ import '../services/api_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String userId;
+  final String userName;
   final VoidCallback onStartSandbox;
 
   const DashboardScreen({
     Key? key,
     required this.userId,
+    required this.userName,
     required this.onStartSandbox,
   }) : super(key: key);
 
@@ -20,6 +22,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final ApiService _apiService = ApiService();
   List<ConceptNode> _nodes = [];
+  List<Map<String, dynamic>> _practiceQuestions = [];
   bool _isLoading = true;
   String _error = '';
 
@@ -32,8 +35,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _loadState() async {
     try {
       final data = await _apiService.fetchCognitiveState(widget.userId);
+      
+      // Filter out Python subtopics (for CS domain, focus on CS_PY_*)
+      final pythonNodes = data.where((node) => node.nodeId.startsWith('CS_PY_')).toList();
+      
+      List<Map<String, dynamic>> practiceQ = [];
+      try {
+        practiceQ = await _apiService.fetchPracticeQuestions(widget.userId);
+      } catch (pqErr) {
+        print('Error loading practice questions: $pqErr');
+      }
+
       setState(() {
-        _nodes = data;
+        _nodes = pythonNodes.isNotEmpty ? pythonNodes : data;
+        _practiceQuestions = practiceQ;
         _isLoading = false;
       });
     } catch (e) {
@@ -136,119 +151,266 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  void _showPracticeDialog(Map<String, dynamic> question) {
+    String? selectedOptId;
+    bool isSubmitting = false;
+    final options = question['options'] as List<dynamic>? ?? [];
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1E293B),
+              title: const Text('Practice Question', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      question['question_text'] ?? '',
+                      style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.4),
+                    ),
+                    const SizedBox(height: 16),
+                    ...options.map((opt) {
+                      final isSel = (selectedOptId == opt['id']);
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: isSel ? Colors.greenAccent.withOpacity(0.1) : const Color(0xFF0F172A),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: isSel ? Colors.greenAccent : Colors.transparent),
+                        ),
+                        child: ListTile(
+                          dense: true,
+                          leading: CircleAvatar(
+                            radius: 12,
+                            backgroundColor: isSel ? Colors.greenAccent : const Color(0xFF1E293B),
+                            child: Text(opt['option_letter'] ?? '', style: TextStyle(color: isSel ? const Color(0xFF0F172A) : Colors.white, fontSize: 10)),
+                          ),
+                          title: Text(opt['option_text'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 13)),
+                          onTap: () {
+                            setDialogState(() {
+                              selectedOptId = opt['id'];
+                            });
+                          },
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.blueGrey)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.greenAccent,
+                    foregroundColor: const Color(0xFF0F172A),
+                  ),
+                  onPressed: (selectedOptId == null || isSubmitting) ? null : () async {
+                    setDialogState(() {
+                      isSubmitting = true;
+                    });
+                    try {
+                      final res = await _apiService.submitAnswer(
+                        userId: widget.userId,
+                        questionId: question['id'],
+                        optionId: selectedOptId!,
+                        timeSpentSeconds: 30,
+                      );
+                      
+                      Navigator.pop(context); // Close practice dialog
+                      
+                      // Show result dialog
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          backgroundColor: const Color(0xFF1E293B),
+                          title: Text(res['success'] == true ? 'Correct!' : 'Incorrect', style: TextStyle(color: res['success'] == true ? Colors.greenAccent : Colors.redAccent, fontWeight: FontWeight.bold)),
+                          content: Text(
+                            res['success'] == true 
+                                ? 'Awesome job! Your mastery distribution has been updated.'
+                                : 'Incorrect answer. Concept feedback indicates minor misunderstanding of ${res['misconceptions_detected']?.join(', ') ?? 'the topic'}. We will adjust practice recommendations.',
+                            style: const TextStyle(color: Colors.white70),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                _loadState(); // Refresh dashboard states
+                              },
+                              child: const Text('Done', style: TextStyle(color: Colors.greenAccent)),
+                            ),
+                          ],
+                        ),
+                      );
+                    } catch (e) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Submission failed: $e')));
+                    }
+                  },
+                  child: isSubmitting 
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0F172A))) 
+                      : const Text('Submit'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final double avgMastery = _nodes.isEmpty
         ? 0.50
         : _nodes.map((e) => e.expectedMastery).reduce((a, b) => a + b) / _nodes.length;
 
+    // Filter weakest subtopics
+    final weakestNodes = _nodes.where((n) => n.expectedMastery < 0.60).toList();
+
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A), // Premium Slate Black
       body: SafeArea(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator(color: Colors.greenAccent))
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Welcome Banner
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Cognitive Hub',
-                              style: TextStyle(
-                                color: Colors.blueGrey[400],
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.2,
+            : RefreshIndicator(
+                color: Colors.greenAccent,
+                onRefresh: _loadState,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Welcome Banner
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Cognitive Hub',
+                                style: TextStyle(
+                                  color: Colors.blueGrey[400],
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.2,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              'Welcome back, Student',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: -0.5,
+                              const SizedBox(height: 4),
+                              Text(
+                                'Welcome back, ${widget.userName}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: -0.5,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.settings, color: Colors.blueGrey),
-                              tooltip: 'Configure Backend Server',
-                              onPressed: () => _showSettingsDialog(context),
-                            ),
-                            const SizedBox(width: 8),
-                            CircleAvatar(
-                              backgroundColor: Colors.green[800],
-                              radius: 24,
-                              child: const Text('ST', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Metrics Row
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildMetricCard(
-                            'EXPECTED MASTERY',
-                            '${(avgMastery * 100).toStringAsFixed(1)}%',
-                            Colors.green,
-                            Icons.psychology,
+                            ],
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildMetricCard(
-                            'CONCEPT COUNT',
-                            '${_nodes.isEmpty ? 15 : _nodes.length} Nodes',
-                            Colors.blueAccent,
-                            Icons.account_tree,
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.settings, color: Colors.blueGrey),
+                                tooltip: 'Configure Backend Server',
+                                onPressed: () => _showSettingsDialog(context),
+                              ),
+                              const SizedBox(width: 8),
+                              CircleAvatar(
+                                backgroundColor: Colors.green[800],
+                                radius: 24,
+                                child: Text(widget.userName.substring(0, min(2, widget.userName.length)).toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
 
-                    // Skill Graph Chart / Radar Canvas
-                    const Text(
-                      'Cognitive Distribution Map',
-                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildRadarMesh(avgMastery),
-                    const SizedBox(height: 32),
+                      // Metrics Row
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildMetricCard(
+                              'EXPECTED MASTERY',
+                              '${(avgMastery * 100).toStringAsFixed(1)}%',
+                              Colors.green,
+                              Icons.psychology,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildMetricCard(
+                              'PYTHON SUBTOPICS',
+                              '${_nodes.length} Nodes',
+                              Colors.blueAccent,
+                              Icons.account_tree,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
 
-                    // AI Curated Daily Sprint
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text(
-                          'AI-Curated Daily Sprint',
+                      // Skill Graph Chart / Radar Canvas
+                      const Text(
+                        'Cognitive Distribution Map',
+                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildRadarMesh(avgMastery),
+                      const SizedBox(height: 32),
+
+                      // Weakest subtopics alert banner if any
+                      if (weakestNodes.isNotEmpty) ...[
+                        const Text(
+                          'Topics Needing Improvement',
                           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                         ),
-                        Text(
-                          'High Priority',
-                          style: TextStyle(color: Colors.amberAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: weakestNodes.map((n) {
+                            return Chip(
+                              backgroundColor: Colors.redAccent.withOpacity(0.1),
+                              side: const BorderSide(color: Colors.redAccent),
+                              label: Text(
+                                '${n.conceptName} (${(n.expectedMastery * 100).toStringAsFixed(0)}%)',
+                                style: const TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                            );
+                          }).toList(),
                         ),
+                        const SizedBox(height: 32),
                       ],
-                    ),
-                    const SizedBox(height: 16),
-                    _buildDailySprintList(),
-                  ],
+
+                      // AI Curated Daily Sprint
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: const [
+                          Text(
+                            'AI-Curated Practice Sprint',
+                            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'Recommended',
+                            style: TextStyle(color: Colors.amberAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildDailySprintList(),
+                    ],
+                  ),
                 ),
               ),
       ),
@@ -317,32 +479,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildDailySprintList() {
-    final List<Map<String, dynamic>> sprintTasks = [
-      {
-        'node': 'CS_DS_ARRAYS',
-        'title': 'Optimize Array Element Shifting',
-        'desc': 'Prerequisite loop parameters require tuning. (Correlation weight: 0.80)',
-        'type': 'Coding Challenge',
-        'color': Colors.amberAccent
-      },
-      {
-        'node': 'CS_PROG_LOOPS',
-        'title': 'Resolve Loop Condition Drift',
-        'desc': 'Recent telemetry signals syntactic hesitation in loop logic.',
-        'type': 'OCR Note Upload',
-        'color': Colors.blueAccent
-      },
-      {
-        'node': 'CS_ALG_RECURSION',
-        'title': 'Recursion Base-Case Deduction',
-        'desc': 'Deep DAG update shows high correlation with Binary Tree traversal.',
-        'type': 'Diagnostic Quiz',
-        'color': Colors.purpleAccent
-      }
-    ];
+    if (_practiceQuestions.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E293B),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.check_circle_outline, color: Colors.greenAccent[400], size: 40),
+            const SizedBox(height: 12),
+            const Text(
+              'No practice questions remaining!',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'You have mastered the curriculum topics or no practice questions exist in the database.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.blueGrey[400], fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Column(
-      children: sprintTasks.map((task) {
+      children: _practiceQuestions.map((q) {
         return Container(
           margin: const EdgeInsets.only(bottom: 14),
           padding: const EdgeInsets.all(18),
@@ -356,9 +521,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Container(
                 width: 4,
-                height: 60,
+                height: 50,
                 decoration: BoxDecoration(
-                  color: task['color'],
+                  color: Colors.greenAccent,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -371,32 +536,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          task['type'],
-                          style: TextStyle(color: task['color'], fontSize: 11, fontWeight: FontWeight.bold),
+                          'Practice Question',
+                          style: TextStyle(color: Colors.greenAccent[400], fontSize: 11, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          task['node'],
+                          'Diff: ${double.parse(q['difficulty_level'].toString()).toStringAsFixed(2)}',
                           style: TextStyle(color: Colors.blueGrey[500], fontSize: 10, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      task['title'],
-                      style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      task['desc'],
-                      style: TextStyle(color: Colors.blueGrey[400], fontSize: 12),
+                      q['question_text'] ?? '',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 12),
               IconButton(
-                icon: const Icon(Icons.arrow_forward_ios, color: Colors.greenAccent, size: 18),
-                onPressed: widget.onStartSandbox,
+                icon: const Icon(Icons.play_circle_outline_rounded, color: Colors.greenAccent, size: 24),
+                onPressed: () => _showPracticeDialog(q),
               ),
             ],
           ),
@@ -446,7 +608,6 @@ class RadarPainter extends CustomPainter {
     final path = Path();
     final masteryPoints = <Offset>[];
     
-    // Create random-like but stable peaks matching mastery bounds for UI rendering
     final r = Random(42);
     for (int i = 0; i < numAxes; i++) {
       final angle = i * angleStep;

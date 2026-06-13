@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'screens/auth_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/skill_mesh_screen.dart';
 import 'screens/sandbox_screen.dart';
+import 'screens/profile_screen.dart';
 
 void main() {
   runApp(const SahAiApp());
@@ -28,13 +30,21 @@ class SahAiApp extends StatelessWidget {
         fontFamily: 'Inter',
         useMaterial3: true,
       ),
-      home: const MainAppShell(),
+      // Starts with AuthScreen
+      home: const AuthScreen(),
     );
   }
 }
 
 class MainAppShell extends StatefulWidget {
-  const MainAppShell({super.key});
+  final String userId;
+  final String userName;
+
+  const MainAppShell({
+    super.key,
+    required this.userId,
+    required this.userName,
+  });
 
   @override
   State<MainAppShell> createState() => _MainAppShellState();
@@ -42,10 +52,6 @@ class MainAppShell extends StatefulWidget {
 
 class _MainAppShellState extends State<MainAppShell> {
   int _selectedIndex = 0;
-  
-  // Set default student ID to sync with our database seeding and E2E integration test runs
-  final String _userId = 'd5d9c4fc-90f9-4c0d-8d09-8bc8a9b23b1c';
-
   late final List<Widget> _screens;
 
   @override
@@ -53,15 +59,17 @@ class _MainAppShellState extends State<MainAppShell> {
     super.initState();
     _screens = [
       DashboardScreen(
-        userId: _userId,
+        userId: widget.userId,
+        userName: widget.userName,
         onStartSandbox: () {
           setState(() {
             _selectedIndex = 2; // Jump to coding sandbox tab
           });
         },
       ),
-      SkillMeshScreen(userId: _userId),
-      SandboxScreen(userId: _userId),
+      SkillMeshScreen(userId: widget.userId),
+      SandboxScreen(userId: widget.userId),
+      ProfileScreen(userId: widget.userId),
     ];
   }
 
@@ -104,6 +112,11 @@ class _MainAppShellState extends State<MainAppShell> {
               icon: Icon(Icons.terminal_rounded),
               activeIcon: Icon(Icons.terminal_rounded, color: Colors.greenAccent),
               label: 'Sandbox',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline_rounded),
+              activeIcon: Icon(Icons.person_rounded, color: Colors.greenAccent),
+              label: 'Profile',
             ),
           ],
         ),

@@ -49,16 +49,16 @@ class _FailureReportScreenState extends State<FailureReportScreen> {
   List<ConceptNode> _generateFallbackNodes() {
     return [
       ConceptNode(
-        nodeId: 'CS_DS_ARRAYS',
-        conceptName: 'Arrays & Lists',
-        difficultyBaseline: 0.5,
+        nodeId: 'CS_PY_SYNTAX',
+        conceptName: 'Python Syntax & Semantics',
+        difficultyBaseline: 0.2,
         alpha: widget.didPaste ? 2.0 : 2.0,
         beta: widget.didPaste ? 2.5 : 1.0,
         expectedMastery: widget.didPaste ? (2.0 / 4.5) : (2.0 / 3.0),
         lastPracticed: DateTime.now(),
       ),
       ConceptNode(
-        nodeId: 'CS_PROG_LOOPS',
+        nodeId: 'CS_PY_LOOPS',
         conceptName: 'Control Flow: Loops',
         difficultyBaseline: 0.45,
         alpha: 1.4,
@@ -67,9 +67,9 @@ class _FailureReportScreenState extends State<FailureReportScreen> {
         lastPracticed: DateTime.now(),
       ),
       ConceptNode(
-        nodeId: 'CS_PROG_VARIABLES',
+        nodeId: 'CS_PY_VARIABLES',
         conceptName: 'Variables & Memory Allocation',
-        difficultyBaseline: 0.35,
+        difficultyBaseline: 0.25,
         alpha: 1.35,
         beta: 1.0,
         expectedMastery: 1.35 / 2.35,

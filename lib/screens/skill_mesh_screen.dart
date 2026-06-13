@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/concept_node.dart';
+import '../models/dag_edge.dart';
 import '../services/api_service.dart';
 
 class SkillMeshScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class SkillMeshScreen extends StatefulWidget {
 class _SkillMeshScreenState extends State<SkillMeshScreen> {
   final ApiService _apiService = ApiService();
   List<ConceptNode> _nodes = [];
+  List<DagEdge> _edges = [];
   bool _isLoading = true;
   String _error = '';
   ConceptNode? _selectedNode;
@@ -27,37 +29,33 @@ class _SkillMeshScreenState extends State<SkillMeshScreen> {
 
   Future<void> _loadData() async {
     try {
-      final state = await _apiService.fetchCognitiveState(widget.userId);
+      final data = await _apiService.fetchCurriculum('CS', userId: widget.userId);
       setState(() {
-        _nodes = state;
+        _nodes = data['nodes'] ?? [];
+        _edges = data['edges'] ?? [];
         _isLoading = false;
       });
     } catch (e) {
-      // Offline / Connection Fallback: load mockup CS Core nodes so Yashwanth has a fully working preview
       setState(() {
-        _nodes = _generatePreviewNodes();
+        _nodes = _generateFallbackNodes();
+        _edges = _generateFallbackEdges();
         _isLoading = false;
       });
     }
   }
 
-  List<ConceptNode> _generatePreviewNodes() {
+  List<ConceptNode> _generateFallbackNodes() {
     final List<Map<String, dynamic>> mockData = [
-      {'id': 'CS_PROG_SYNTAX', 'name': 'Syntax & Semantics', 'mastery': 0.88, 'alpha': 8.8, 'beta': 1.2},
-      {'id': 'CS_PROG_VARIABLES', 'name': 'Variables & Memory', 'mastery': 0.82, 'alpha': 4.1, 'beta': 0.9},
-      {'id': 'CS_PROG_CONDITIONALS', 'name': 'Conditionals', 'mastery': 0.76, 'alpha': 3.8, 'beta': 1.2},
-      {'id': 'CS_PROG_LOOPS', 'name': 'Loops & Iteration', 'mastery': 0.44, 'alpha': 2.2, 'beta': 2.8},
-      {'id': 'CS_DS_ARRAYS', 'name': 'Arrays & Lists', 'mastery': 0.68, 'alpha': 3.4, 'beta': 1.6},
-      {'id': 'CS_DS_LINKED_LISTS', 'name': 'Linked Lists', 'mastery': 0.52, 'alpha': 2.6, 'beta': 2.4},
-      {'id': 'CS_DS_STACKS_QUEUES', 'name': 'Stacks & Queues', 'mastery': 0.58, 'alpha': 2.9, 'beta': 2.1},
-      {'id': 'CS_DS_TREES', 'name': 'Binary Trees & BSTs', 'mastery': 0.38, 'alpha': 1.9, 'beta': 3.1},
-      {'id': 'CS_DS_GRAPHS', 'name': 'Graph Representation', 'mastery': 0.22, 'alpha': 1.1, 'beta': 3.9},
-      {'id': 'CS_ALG_SEARCHING', 'name': 'Searching Algorithms', 'mastery': 0.65, 'alpha': 3.25, 'beta': 1.75},
-      {'id': 'CS_ALG_SORTING', 'name': 'Sorting Algorithms', 'mastery': 0.55, 'alpha': 2.75, 'beta': 2.25},
-      {'id': 'CS_ALG_RECURSION', 'name': 'Recursion & Backtrack', 'mastery': 0.42, 'alpha': 2.1, 'beta': 2.9},
-      {'id': 'CS_ALG_DYNAMIC_PROG', 'name': 'Dynamic Programming', 'mastery': 0.15, 'alpha': 0.75, 'beta': 4.25},
-      {'id': 'CS_DBMS_RELATIONAL', 'name': 'Relational Model', 'mastery': 0.72, 'alpha': 3.6, 'beta': 1.4},
-      {'id': 'CS_DBMS_NORMALIZATION', 'name': 'Normalization', 'mastery': 0.48, 'alpha': 2.4, 'beta': 2.6},
+      {'id': 'CS_PY_SYNTAX', 'name': 'Syntax & Semantics', 'mastery': 0.88, 'alpha': 8.8, 'beta': 1.2},
+      {'id': 'CS_PY_VARIABLES', 'name': 'Variables & Memory', 'mastery': 0.82, 'alpha': 4.1, 'beta': 0.9},
+      {'id': 'CS_PY_CONDITIONALS', 'name': 'Conditionals', 'mastery': 0.76, 'alpha': 3.8, 'beta': 1.2},
+      {'id': 'CS_PY_LOOPS', 'name': 'Loops & Iteration', 'mastery': 0.44, 'alpha': 2.2, 'beta': 2.8},
+      {'id': 'CS_PY_FUNCTIONS', 'name': 'Functions & Scope', 'mastery': 0.60, 'alpha': 3.0, 'beta': 2.0},
+      {'id': 'CS_PY_LISTS_DICTS', 'name': 'Lists & Dictionaries', 'mastery': 0.68, 'alpha': 3.4, 'beta': 1.6},
+      {'id': 'CS_PY_OOPS', 'name': 'OOP Concepts', 'mastery': 0.52, 'alpha': 2.6, 'beta': 2.4},
+      {'id': 'CS_PY_EXCEPTIONS', 'name': 'Exception Handling', 'mastery': 0.58, 'alpha': 2.9, 'beta': 2.1},
+      {'id': 'CS_PY_FILE_IO', 'name': 'File I/O', 'mastery': 0.38, 'alpha': 1.9, 'beta': 3.1},
+      {'id': 'CS_PY_LIBRARIES', 'name': 'Modules & Packages', 'mastery': 0.50, 'alpha': 2.0, 'beta': 2.0},
     ];
 
     return mockData.map((d) {
@@ -71,6 +69,23 @@ class _SkillMeshScreenState extends State<SkillMeshScreen> {
         lastPracticed: DateTime.now(),
       );
     }).toList();
+  }
+
+  List<DagEdge> _generateFallbackEdges() {
+    return [
+      DagEdge(sourceNode: 'CS_PY_SYNTAX', targetNode: 'CS_PY_VARIABLES', edgeType: 'PREREQUISITE', correlationWeight: 0.85),
+      DagEdge(sourceNode: 'CS_PY_SYNTAX', targetNode: 'CS_PY_CONDITIONALS', edgeType: 'PREREQUISITE', correlationWeight: 0.70),
+      DagEdge(sourceNode: 'CS_PY_VARIABLES', targetNode: 'CS_PY_CONDITIONALS', edgeType: 'PREREQUISITE', correlationWeight: 0.75),
+      DagEdge(sourceNode: 'CS_PY_CONDITIONALS', targetNode: 'CS_PY_LOOPS', edgeType: 'PREREQUISITE', correlationWeight: 0.80),
+      DagEdge(sourceNode: 'CS_PY_VARIABLES', targetNode: 'CS_PY_LISTS_DICTS', edgeType: 'PREREQUISITE', correlationWeight: 0.85),
+      DagEdge(sourceNode: 'CS_PY_LOOPS', targetNode: 'CS_PY_LISTS_DICTS', edgeType: 'PREREQUISITE', correlationWeight: 0.78),
+      DagEdge(sourceNode: 'CS_PY_FUNCTIONS', targetNode: 'CS_PY_OOPS', edgeType: 'PREREQUISITE', correlationWeight: 0.82),
+      DagEdge(sourceNode: 'CS_PY_SYNTAX', targetNode: 'CS_PY_FUNCTIONS', edgeType: 'PREREQUISITE', correlationWeight: 0.80),
+      DagEdge(sourceNode: 'CS_PY_OOPS', targetNode: 'CS_PY_EXCEPTIONS', edgeType: 'DIAGNOSTIC_INFERENCE', correlationWeight: 0.65),
+      DagEdge(sourceNode: 'CS_PY_FILE_IO', targetNode: 'CS_PY_EXCEPTIONS', edgeType: 'DIAGNOSTIC_INFERENCE', correlationWeight: 0.70),
+      DagEdge(sourceNode: 'CS_PY_FUNCTIONS', targetNode: 'CS_PY_FILE_IO', edgeType: 'PREREQUISITE', correlationWeight: 0.60),
+      DagEdge(sourceNode: 'CS_PY_SYNTAX', targetNode: 'CS_PY_LIBRARIES', edgeType: 'PREREQUISITE', correlationWeight: 0.50),
+    ];
   }
 
   @override
@@ -106,7 +121,10 @@ class _SkillMeshScreenState extends State<SkillMeshScreen> {
                       height: 1000,
                       color: const Color(0xFF0F172A),
                       child: CustomPaint(
-                        painter: MeshPainter(nodes: _nodes),
+                        painter: MeshPainter(
+                          nodes: _nodes,
+                          edges: _edges,
+                        ),
                       ),
                     ),
                   ),
@@ -130,8 +148,8 @@ class _SkillMeshScreenState extends State<SkillMeshScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'Select nodes to display Beta parameters and Ebbinghaus time decays.',
-                            style: TextStyle(color: Colors.blueGrey[300], fontSize: 12),
+                            'Personalized Python Subtopics graph. Green represents strong mastery (>75%), amber represents intermediate (50-75%), and red indicates weak concepts needing improvement.',
+                            style: TextStyle(color: Colors.blueGrey[300], fontSize: 11),
                           ),
                         ),
                       ],
@@ -147,14 +165,12 @@ class _SkillMeshScreenState extends State<SkillMeshScreen> {
   }
 
   void _handleCanvasTap(Offset tapPos) {
-    // Check if clicked any node circle (centers are hardcoded in MeshPainter positions)
     ConceptNode? tapped;
     final centers = _getNodePositions(800, 1000);
 
     centers.forEach((nodeId, center) {
       final distance = (tapPos - center).distance;
-      if (distance < 28) {
-        // Radius of node circle
+      if (distance < 32) {
         tapped = _nodes.firstWhere((n) => n.nodeId == nodeId, orElse: () => _nodes[0]);
       }
     });
@@ -171,6 +187,16 @@ class _SkillMeshScreenState extends State<SkillMeshScreen> {
         : node.expectedMastery >= 0.50
             ? Colors.amberAccent
             : Colors.redAccent;
+
+    // Reason suggestion dynamically based on mastery
+    String actionSuggestion = '';
+    if (node.expectedMastery < 0.50) {
+      actionSuggestion = 'Concept is weak. Practice recommended. Choose related MCQ sprint on Hub or review syntax in Sandbox.';
+    } else if (node.expectedMastery < 0.75) {
+      actionSuggestion = 'Intermediate understanding. Focus on border case errors to strengthen this node.';
+    } else {
+      actionSuggestion = 'Mastery is solid. Proceeding to more advanced curriculum segments recommended.';
+    }
 
     return Positioned(
       bottom: 0,
@@ -224,7 +250,12 @@ class _SkillMeshScreenState extends State<SkillMeshScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'forgetting_curve_decay_rate: 0.02/day • confidence_interval: [${(node.expectedMastery - 0.1).toStringAsFixed(2)}, ${(node.expectedMastery + 0.1).toStringAsFixed(2)}]',
+              actionSuggestion,
+              style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'forgetting_curve_decay_rate: 0.02/day • last_practiced: ${node.lastPracticed.toLocal().toString().substring(0, 16)}',
               style: TextStyle(color: Colors.blueGrey[400], fontSize: 11, fontStyle: FontStyle.italic),
             ),
           ],
@@ -246,38 +277,30 @@ class _SkillMeshScreenState extends State<SkillMeshScreen> {
 
   static Map<String, Offset> _getNodePositions(double width, double height) {
     return {
-      // Row 1 (Programming Basics)
-      'CS_PROG_SYNTAX': Offset(width * 0.25, height * 0.15),
-      'CS_PROG_VARIABLES': Offset(width * 0.75, height * 0.15),
-      'CS_PROG_CONDITIONALS': Offset(width * 0.25, height * 0.30),
-      'CS_PROG_LOOPS': Offset(width * 0.75, height * 0.30),
-      
-      // Row 2 (Data Structures)
-      'CS_DS_ARRAYS': Offset(width * 0.20, height * 0.48),
-      'CS_DS_LINKED_LISTS': Offset(width * 0.50, height * 0.48),
-      'CS_DS_STACKS_QUEUES': Offset(width * 0.80, height * 0.48),
-      
-      // Row 3 (Algorithms)
-      'CS_ALG_SEARCHING': Offset(width * 0.20, height * 0.65),
-      'CS_ALG_SORTING': Offset(width * 0.50, height * 0.65),
-      'CS_ALG_RECURSION': Offset(width * 0.80, height * 0.65),
-      
-      // Row 4 (Advanced DS / Alg)
-      'CS_DS_TREES': Offset(width * 0.30, height * 0.80),
-      'CS_DS_GRAPHS': Offset(width * 0.70, height * 0.80),
-      'CS_ALG_DYNAMIC_PROG': Offset(width * 0.50, height * 0.90),
-      
-      // Database Submesh
-      'CS_DBMS_RELATIONAL': Offset(width * 0.15, height * 0.90),
-      'CS_DBMS_NORMALIZATION': Offset(width * 0.85, height * 0.90),
+      // Row 1 (Basics)
+      'CS_PY_SYNTAX': Offset(width * 0.25, height * 0.15),
+      'CS_PY_VARIABLES': Offset(width * 0.75, height * 0.15),
+      // Row 2 (Control & Logic)
+      'CS_PY_CONDITIONALS': Offset(width * 0.25, height * 0.35),
+      'CS_PY_LOOPS': Offset(width * 0.75, height * 0.35),
+      // Row 3 (Functions & Data Structures)
+      'CS_PY_FUNCTIONS': Offset(width * 0.20, height * 0.55),
+      'CS_PY_LISTS_DICTS': Offset(width * 0.80, height * 0.55),
+      // Row 4 (OOP & Advanced)
+      'CS_PY_OOPS': Offset(width * 0.20, height * 0.75),
+      'CS_PY_EXCEPTIONS': Offset(width * 0.80, height * 0.75),
+      // Row 5 (External Interface)
+      'CS_PY_FILE_IO': Offset(width * 0.30, height * 0.90),
+      'CS_PY_LIBRARIES': Offset(width * 0.70, height * 0.90),
     };
   }
 }
 
 class MeshPainter extends CustomPainter {
   final List<ConceptNode> nodes;
+  final List<DagEdge> edges;
 
-  MeshPainter({required this.nodes});
+  MeshPainter({required this.nodes, required this.edges});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -291,33 +314,35 @@ class MeshPainter extends CustomPainter {
       ..strokeWidth = 2.0;
 
     final paintDiagEdge = Paint()
-      ..color = Colors.blueGrey[800]!
+      ..color = Colors.blueGrey[800]!.withOpacity(0.5)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
 
-    // Draw Prerequisite Edges (Source -> Target links)
-    final edges = [
-      {'src': 'CS_PROG_SYNTAX', 'tgt': 'CS_PROG_VARIABLES', 'diag': false},
-      {'src': 'CS_PROG_VARIABLES', 'tgt': 'CS_PROG_CONDITIONALS', 'diag': false},
-      {'src': 'CS_PROG_CONDITIONALS', 'tgt': 'CS_PROG_LOOPS', 'diag': false},
-      {'src': 'CS_PROG_LOOPS', 'tgt': 'CS_DS_ARRAYS', 'diag': false},
-      {'src': 'CS_PROG_VARIABLES', 'tgt': 'CS_DS_ARRAYS', 'diag': false},
-      {'src': 'CS_DS_ARRAYS', 'tgt': 'CS_DS_LINKED_LISTS', 'diag': true},
-      {'src': 'CS_DS_ARRAYS', 'tgt': 'CS_DS_STACKS_QUEUES', 'diag': false},
-      {'src': 'CS_DS_LINKED_LISTS', 'tgt': 'CS_DS_TREES', 'diag': false},
-      {'src': 'CS_DS_TREES', 'tgt': 'CS_DS_GRAPHS', 'diag': false},
-      {'src': 'CS_DS_ARRAYS', 'tgt': 'CS_ALG_SEARCHING', 'diag': false},
-      {'src': 'CS_ALG_SEARCHING', 'tgt': 'CS_ALG_SORTING', 'diag': true},
-      {'src': 'CS_ALG_RECURSION', 'tgt': 'CS_DS_TREES', 'diag': false},
-      {'src': 'CS_ALG_RECURSION', 'tgt': 'CS_ALG_DYNAMIC_PROG', 'diag': false},
-      {'src': 'CS_DBMS_RELATIONAL', 'tgt': 'CS_DBMS_NORMALIZATION', 'diag': false},
-    ];
-
+    // Draw Prerequisite Edges (Source -> Target links) dynamically from API
     for (var edge in edges) {
-      final srcOffset = posMap[edge['src']];
-      final tgtOffset = posMap[edge['tgt']];
+      final srcOffset = posMap[edge.sourceNode];
+      final tgtOffset = posMap[edge.targetNode];
       if (srcOffset != null && tgtOffset != null) {
-        canvas.drawLine(srcOffset, tgtOffset, edge['diag'] == true ? paintDiagEdge : paintEdge);
+        final isDiag = edge.edgeType == 'DIAGNOSTIC_INFERENCE' || edge.edgeType == 'PERSONALIZED_LINK';
+        canvas.drawLine(
+          srcOffset,
+          tgtOffset,
+          isDiag ? paintDiagEdge : paintEdge,
+        );
+
+        // Optional: draw correlation weights text in the middle of edges
+        final midX = (srcOffset.dx + tgtOffset.dx) / 2;
+        final midY = (srcOffset.dy + tgtOffset.dy) / 2;
+        final textSpan = TextSpan(
+          style: TextStyle(color: Colors.blueGrey[500], fontSize: 9, fontFamily: 'monospace', fontWeight: FontWeight.bold),
+          text: edge.correlationWeight.toStringAsFixed(2),
+        );
+        final textPainter = TextPainter(
+          text: textSpan,
+          textDirection: TextDirection.ltr,
+        );
+        textPainter.layout();
+        textPainter.paint(canvas, Offset(midX - textPainter.width / 2, midY - textPainter.height / 2));
       }
     }
 
@@ -326,7 +351,6 @@ class MeshPainter extends CustomPainter {
       final node = nodeMap[nodeId];
       final mastery = node?.expectedMastery ?? 0.5;
       
-      // Determine mastery color
       Color color = Colors.redAccent;
       if (mastery >= 0.75) {
         color = Colors.greenAccent;
@@ -337,28 +361,29 @@ class MeshPainter extends CustomPainter {
       // Outer glow circle
       canvas.drawCircle(
         center,
-        32,
-        Paint()..color = color.withOpacity(0.12)..style = PaintingStyle.fill,
+        36,
+        Paint()..color = color.withOpacity(0.10)..style = PaintingStyle.fill,
       );
 
       // Node border
       canvas.drawCircle(
         center,
-        24,
+        28,
         Paint()..color = color..style = PaintingStyle.stroke..strokeWidth = 2.0,
       );
 
       // Node inner fill
       canvas.drawCircle(
         center,
-        23,
+        27,
         Paint()..color = const Color(0xFF1E293B)..style = PaintingStyle.fill,
       );
 
-      // Text label for initials
+      // Text label for initials (e.g. SYN, VAR, COND, OOP)
+      final label = nodeId.replaceFirst('CS_PY_', '').substring(0, min(4, nodeId.length - 6));
       final textSpan = TextSpan(
         style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
-        text: nodeId.replaceFirst('CS_PROG_', '').replaceFirst('CS_DS_', '').replaceFirst('CS_ALG_', '').replaceFirst('CS_DBMS_', '').substring(0, min(4, nodeId.length - 3)),
+        text: label,
       );
       final textPainter = TextPainter(
         text: textSpan,
